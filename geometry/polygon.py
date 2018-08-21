@@ -1,4 +1,5 @@
 import math
+from functools import reduce
 
 from .settings import pi
 from .point import Point
@@ -173,15 +174,37 @@ class Polygon(GeometryEntity):
 
     def intersection(self, other):
         """the intersection of polygon and other geometry entity"""
-        pass
+        intersection_result = []
+        k = other.sides if isinstance(other, Polygon) else [other]
+        for side in self.sides:
+            for side1 in k:
+                intersection_result.extend(side.intersection(side1))
 
+        intersection_result = list(set(intersection_result))
+        points = [entity for entity in intersection_result if isinstance(entity, Point)]
+        segments = [entity for entity in intersection_result if isinstance(entity, Segment)]
+
+        if points and segments:
+            points_in_segments = list(set([point for point in points for segment in segments if point in segment]))
+            if points_in_segments:
+                for i in points_in_segments:
+                    points.remove(i)
+            return list(segments + points)
+        else:
+            return list(intersection_result)
+
+    @property
     def centroid(self):
         """Return the centroid of th polygon"""
-        pass
+        v = self.vertices
+        d = reduce(lambda x, y: x+y, ((a.x * a.y) for a in v))
+        dx = reduce(lambda x, y: x+y, ((a.x) for a in v))
+        dy = reduce(lambda x, y: x+y, ((a.y) for a in v))
+        return Point(d/dy, d/dx)
 
     def second_moment_of_area(self, point=None):
         """Returns the second moment and product moment of area of a two dimensional polygon."""
-        pass
+        raise NotImplementedError()
 
 
 class RegularPolygon(Polygon):

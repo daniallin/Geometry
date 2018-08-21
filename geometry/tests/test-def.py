@@ -28,5 +28,10 @@
 # d['a'] = 1
 # print(d)
 
-print(True == True)
-print(True ^ False)
+# print(True == True)
+# print(True ^ False)
+
+l = [1, 3, 4, 2, 3, 1]
+s = set(l)
+print(s)
+

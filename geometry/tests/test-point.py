@@ -7,6 +7,8 @@ p2_my = Point([1, 3])
 # p3_my = Point(x=1, y=2)
 p4_my = Point(0, 0)
 p5_my = Point(1, 2, 3)
+p6_my = Point(1, 2, 4)
+p7_my = Point(1, 3, 5)
 p1_sym = sympy.geometry.point.Point(1, 2)
 
 start_time = time.clock()
@@ -28,6 +30,7 @@ start_time = time.clock()
 # print(p2_my.project(p1_my))
 # print(p1_my.cross(p2_my))
 # print(p2_my.dot(p1_my))
+print(p5_my.is_collinear(p6_my, p7_my))
 
 end_time1 = time.clock()
 

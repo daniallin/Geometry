@@ -24,6 +24,30 @@ class LinearEntity(GeometryEntity):
         """
         return 2
 
+    def __contains__(self, other):
+        """Return a definitive answer or else raise an error if it cannot
+        be determined that other is on the boundaries of self."""
+        result = self.contains(other)
+
+        if result is not None:
+            return result
+        else:
+            return ("can't decide whether '%s' contains '%s'" % (self, other))
+
+    def contains(self, other):
+        raise NotImplementedError()
+
+    def _span_test(self, other):
+        """Test whether the point `other` lies in the positive span of `self`."""
+        if self.p1 == other:
+            return 0
+
+        rel_pos = other - self.p1
+        d = self.direction
+        if d.dot(rel_pos) > 0:
+            return 1
+        return -1
+
     @property
     def ambient_dimention(self):
         """Return the dimention of self line"""
@@ -54,6 +78,10 @@ class LinearEntity(GeometryEntity):
         whether two linear are parallel
         :param line:  Line
         """
+        # 这里的平行包含共线，使用时需注意
+        if not isinstance(self, LinearEntity) and not isinstance(line, LinearEntity):
+            raise TypeError('Must pass only LinearEntity objects')
+
         a = self.direction
         b = line.direction
         return not ((a.x * b.y) - (a.y * b.x))
@@ -170,8 +198,41 @@ class LinearEntity(GeometryEntity):
         pass
 
     # def intersection(self, other):
-    # Doesn't Write here but in Line, Segment, Ray
-    #     pass
+    #     # 以后需要补充，将所有的相交行为都移植到该函数下，使得3D也可用
+    #     def intersect_parallel_segments(seg1, seg2):
+    #         if seg1.contains(seg2):
+    #             return [seg2]
+    #         if seg2.contains(seg1):
+    #             return [seg1]
+    #
+    #         # direct the segments so they're oriented the same way
+    #         if seg1.direction.dot(seg2.direction) < 0:
+    #             seg2 = Segment(seg2.p2, seg2.p1)
+    #         # order the segments so seg1 is "behind" seg2
+    #         if seg1._span_test(seg2.p1) < 0:
+    #             seg1, seg2 = seg2, seg1
+    #         if seg2._span_test(seg1.p2) < 0:
+    #             return []
+    #         return [Segment(seg2.p1, seg1.p2)]
+    #
+    #     if not isinstance(other, GeometryEntity):
+    #         other = Point._convert(other)
+    #         if self.contains(other):
+    #             return [other]
+    #         else:
+    #             return []
+    #     elif isinstance(other, LinearEntity):
+    #         if self.p1.is_collinear(self.p2, other.p1, other.p2):
+    #             if isinstance(other, Line):
+    #                 return [self]
+    #             if isinstance(self, Line):
+    #                 return [other]
+    #             if isinstance(other, Segment) and isinstance(self, Segment):
+    #                 return intersect_parallel_segments(self, other)
+    #         else:
+    #             if self.is_parallel(other):
+    #                 return []
+
 
 
 class Line(LinearEntity):
@@ -192,11 +253,12 @@ class Line(LinearEntity):
             return Line3D(p1, p2, **kwargs)
         return LinearEntity.__new__(cls, p1, p2, **kwargs)
 
-    def __contains__(self, item):
-        item_type = type(item)
-        if issubclass(item_type, Point):
+    def contains(self, item):
+        if not isinstance(item, GeometryEntity):
+            item = Point._convert(item)
+        if isinstance(item, Point):
             return self.p1.is_collinear(item, self.p2)
-        if issubclass(item_type, Line):
+        if isinstance(item, Line):
             if not self.p1.is_collinear(item.p1, item.p2):
                 return False
             return self.p2.is_collinear(item.p1, item.p2)
@@ -352,15 +414,16 @@ class Segment(LinearEntity):
             return Segment3D(p1, p2, **kwargs)
         return LinearEntity.__new__(cls, p1, p2, **kwargs)
 
-    def __contains__(self, item):
-        item_type = type(item)
-        if issubclass(item_type, Point):
+    def contains(self, item):
+        if not isinstance(item, GeometryEntity):
+            item = Point._convert(item)
+        if isinstance(item, Point):
             if self.p1.is_collinear(item, self.p2):
                 d = self.direction
                 d1, d2 = self.p1 - item, self.p2 - item
                 return round(abs(d) - abs(d1) - abs(d2), 6) == 0
 
-        if issubclass(item_type, Segment):
+        if isinstance(item, Segment):
             return item.p1 in self and item.p2 in self
 
     def equals(self, other):
@@ -387,12 +450,6 @@ class Segment(LinearEntity):
         op1, op2 = self.p1 - p, self.p2 - p
         sign1, sign2 = op1.dot(d), op2.dot(d)
 
-        # if sign1 > 0 and sign2 <= 0:
-        #     return Line(self.p1, self.p2).distance(p)
-        # if sign1 >= 0 and sign2 < 0:
-        #     return abs(op2)
-        # if sign1 < 0 and sign2 >= 0:
-        #     return abs(op1)
         if sign1 >= 0 and sign2 > 0:
             return abs(op1)
         if sign1 < 0:
@@ -412,6 +469,28 @@ class Segment2D(Segment, LinearEntity2D):
     def __new__(cls, p1, p2, **kwargs):
         return LinearEntity.__new__(cls, p1, p2, **kwargs)
 
+    def intersection(self, other):
+        def intersect_parallel_segments(seg1, seg2):
+            if seg1.contains(seg2):
+                return [seg2]
+            if seg2.contains(seg1):
+                return [seg1]
+
+        if not isinstance(other, Segment2D):
+            raise ValueError("% isn't segment2D" %other)
+
+        if self.p1.is_collinear(self.p2, other.p1, other.p2):
+            return intersect_parallel_segments(self, other)
+        elif self.is_parallel(other):
+                return []
+        else:
+            l1 = Line(self.p1, self.p2)
+            l2 = Line(other.p1, other.p2)
+            p = l1.intersection(l2)
+            if p in self and p in other:
+                return p
+            return []
+
 
 class Ray(LinearEntity):
     def __new__(cls, p1, p2=None, **kwargs):
@@ -428,6 +507,29 @@ class Ray(LinearEntity):
         elif dim == 3:
             return Ray3D(p1, p2, **kwargs)
         return LinearEntity.__new__(cls, p1, p2, **kwargs)
+
+    @property
+    def source(self):
+        return self.p1
+
+    def equals(self, other):
+        if not isinstance(other, Ray):
+            return False
+        return self.source == other.source and other.p2 in self
+
+    def contains(self, other):
+        if not isinstance(other, GeometryEntity):
+            other = Point._convert(other)
+        if isinstance(other, Point):
+            if self.p1.is_collinear(self.p2, other):
+                return self.direction.dot(other - self.p1) >= 0
+            return False
+        if isinstance(other, Ray):
+            if self.p1.is_collinear(self.p2, other.p1, other.p2):
+                return self.direction.dot(other.direction) > 0
+            return False
+        if isinstance(other, Segment):
+            return other.p1 in self and other.p2 in self
 
 
 class Ray2D(Ray):

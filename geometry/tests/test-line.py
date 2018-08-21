@@ -1,5 +1,5 @@
 from geometry.point import Point
-from geometry.line import Line, Ray, Segment
+from geometry.line import Line, Ray, Segment, Line2D
 import sympy.geometry.point
 import sympy.geometry.line
 import time
@@ -12,13 +12,14 @@ p3_my = Point(1, 1)
 p4_my = Point(10, 1)
 p5_my = Point(1, 0)
 p6_my = Point(10, 0)
+
 # p7_my = Point(2, -2)
 # print(p7_my)
 
 
 
 # --------------test line -----------------#
-l1 = Line(p1_my, p2_my)
+l1 = Line2D(p1_my, p2_my)
 l2 = Line(p3_my, p4_my)
 l3 = Line(p5_my, p6_my)
 
@@ -36,6 +37,7 @@ l3 = Line(p5_my, p6_my)
 # print(l1.perpendicular_segment(p3_my))
 # print(l1.projection(p3_my))
 # print(l1.projection((1, 1)))
+# print(l1.contains((2, -1)))
 # print(l2.length)
 # print(l1.slope)
 # print(l1.is_vertical)
@@ -57,8 +59,7 @@ s2 = Segment(p3_my, p4_my)
 
 # print(type(s1))
 # print(s1.length)
-# print(s1.contains(p1_my))
-# print(s1.contains(p3_my))
+# print(p3_my in s1)
 # print(s1.equals(s2))
 # print(s1.equals(s1))
 # print(s1.distance(p1_my))
@@ -68,6 +69,7 @@ s2 = Segment(p3_my, p4_my)
 # print(s1.distance(p7_my))
 # print(s1.perpendicular_bisector())
 # print(s1.is_parallel(s2))
+# print(s1.contains((2, -1)))
 
 # ---------------Segment End --------------#
 

@@ -178,7 +178,7 @@ class Point2D(Point):
             flag = True
             for i in args[1:]:
                 # 平行线斜率 叉乘 为零
-                if slope_x * (self.y - i.y) - slope_y * (self.x - i.x) != 0.0:
+                if not slope_x * (self.y - i.y) == slope_y * (self.x - i.x):
                     flag = False
                     break
             return flag
@@ -213,3 +213,28 @@ class Point3D(Point):
 
     def scale(self, x=1, y=1, z=1):
         return Point(self.x*x, self.y*y, self.z*z)
+
+    def is_collinear(self, *args):
+        # 判断点是否为同一维度，不必要，可以不用
+        # for p in args:
+        #     if not len(self.args) == len(p.args):
+        #         raise ValueError("points are not same dimentional")
+        if len(args) == 1:
+            return True
+        else:
+            slope_x = self.x - args[0].x
+            slope_y = self.y - args[0].y
+            slope_z = self.z - args[0].z
+            flag = True
+            for i in args[1:]:
+                # 平行线斜率 叉乘 为零
+                if not slope_x * (self.y - i.y) == slope_y * (self.x - i.x):
+                    flag = False
+                    break
+                elif not slope_x * (self.z - i.z) == slope_z * (self.x - i.x):
+                    flag = False
+                    break
+                elif not slope_y * (self.z - i.z) == slope_z * (self.y - i.y):
+                    flag = False
+                    break
+            return flag
