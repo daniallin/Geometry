@@ -34,6 +34,19 @@ class LinearEntity(GeometryEntity):
         else:
             return ("can't decide whether '%s' contains '%s'" % (self, other))
 
+    def __eq__(self, other):
+        result = self.equals(other)
+
+        if result is not None:
+            return result
+        return ("can't decide whether '%s' equals '%s'" % (self, other))
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
+    def __hash__(self):
+        return hash(self.args)
+
     def contains(self, other):
         raise NotImplementedError()
 
@@ -434,12 +447,17 @@ class Segment(LinearEntity):
         if isinstance(item, Segment):
             return item.p1 in self and item.p2 in self
 
+        return False
+
     def equals(self, other):
         if not isinstance(other, Segment):
             raise ValueError("{} is not a segment".format(other))
-        # This makes judgement more succinct
-        p = other.p1 if other.p2 == self.p1 else other.p2
-        if p == self.p2:
+
+        sp1, sp2, op1, op2 = self.p1, self.p2, other.p1, other.p2
+
+        if op1 == sp1 and op2 == op2:
+            return True
+        if op1 == sp2 and op2 == sp1:
             return True
         return False
 
@@ -475,6 +493,13 @@ class Segment(LinearEntity):
 
 class Segment2D(Segment, LinearEntity2D):
     def __new__(cls, p1, p2, **kwargs):
+
+        p1 = Point._convert(p1)
+        p2 = Point._convert(p2)
+
+        if p1 == p2:
+            return p1
+
         return LinearEntity.__new__(cls, p1, p2, **kwargs)
 
     def intersection(self, other):
@@ -484,7 +509,7 @@ class Segment2D(Segment, LinearEntity2D):
             if seg2.contains(seg1):
                 return [seg1]
 
-        if not isinstance(other, Segment2D):
+        if not isinstance(other, LinearEntity2D):
             raise ValueError("{} isn't segment2D".format(other))
 
         if self.p1.is_collinear(self.p2, other.p1, other.p2):

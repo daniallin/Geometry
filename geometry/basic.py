@@ -1,5 +1,5 @@
 
-class GeometryEntity():
+class GeometryEntity(object):
 
     def __new__(cls, *args, **kwargs):
         obj = object.__new__(cls)
@@ -17,6 +17,13 @@ class GeometryEntity():
     @property
     def args(self):
         return self._args
+
+    def __ne__(self, o):
+        """Test inequality of two geometrical entities."""
+        return not self.__eq__(o)
+
+    def __getnewargs__(self):
+        return tuple(self.args)
 
 
 
