@@ -84,16 +84,24 @@ class LinearEntity(GeometryEntity):
 
         a = self.direction
         b = line.direction
-        return not ((a.x * b.y) - (a.y * b.x))
+
+        if isinstance(line, LinearEntity2D):
+            return a.cross(b) == 0
+
+        d1 = abs(a) * math.sqrt(b.x**2 + b.y**2)
+        d2 = abs(b) * math.sqrt(a.x**2 + a.y**2)
+        return d1 == d2
 
     def is_perpendicular(self, line):
         """
-        whether two linear are parallel
+        whether two linear are perpendicular
         :param line:  Line
         """
-        a = self.direction
-        b = line.direction
-        return (a.x * b.y) + (a.y * b.x) == 0
+        if not isinstance(line, LinearEntity) and not isinstance(self, LinearEntity):
+            raise TypeError('Must pass only LinearEntity objects')
+
+        return self.direction.dot(line.direction) == 0
+
 
     def is_intersection(self, line):
         """Are lines intersect?
@@ -195,7 +203,7 @@ class LinearEntity(GeometryEntity):
 
         Concurrent means lines all intersect at a single point.
         """
-        pass
+        raise NotImplementedError()
 
     # def intersection(self, other):
     #     # 以后需要补充，将所有的相交行为都移植到该函数下，使得3D也可用
@@ -421,7 +429,7 @@ class Segment(LinearEntity):
             if self.p1.is_collinear(item, self.p2):
                 d = self.direction
                 d1, d2 = self.p1 - item, self.p2 - item
-                return round(abs(d) - abs(d1) - abs(d2), 6) == 0
+                return (abs(d) - abs(d1) - abs(d2)) == 0
 
         if isinstance(item, Segment):
             return item.p1 in self and item.p2 in self
@@ -477,7 +485,7 @@ class Segment2D(Segment, LinearEntity2D):
                 return [seg1]
 
         if not isinstance(other, Segment2D):
-            raise ValueError("% isn't segment2D" %other)
+            raise ValueError("{} isn't segment2D".format(other))
 
         if self.p1.is_collinear(self.p2, other.p1, other.p2):
             return intersect_parallel_segments(self, other)
@@ -488,7 +496,7 @@ class Segment2D(Segment, LinearEntity2D):
             l2 = Line(other.p1, other.p2)
             p = l1.intersection(l2)
             if p in self and p in other:
-                return p
+                return [p]
             return []
 
 
@@ -532,7 +540,7 @@ class Ray(LinearEntity):
             return other.p1 in self and other.p2 in self
 
 
-class Ray2D(Ray):
+class Ray2D(Ray, LinearEntity2D):
     def __new__(cls, p1, p2, **kwargs):
 
         return LinearEntity.__new__(cls, p1, p2, **kwargs)

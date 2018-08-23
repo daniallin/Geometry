@@ -170,7 +170,7 @@ class Polygon(GeometryEntity):
         """
         Returns the shortest distance between self and o.
         """
-        pass
+        raise NotImplementedError()
 
     def intersection(self, other):
         """the intersection of polygon and other geometry entity"""
@@ -212,34 +212,34 @@ class RegularPolygon(Polygon):
 
     @property
     def area(self):
-        pass
+        raise NotImplementedError()
 
     @property
     def length(self):
-        pass
+        raise NotImplementedError()
 
     @property
     def center(self):
-        pass
+        raise NotImplementedError()
 
     @property
     def radius(self):
         """Radius of the RegularPolygon"""
-        pass
+        raise NotImplementedError()
 
     @property
     def circumcircle(self):
         """The circumcircle of the RegularPolygon."""
-        pass
+        raise NotImplementedError()
 
     @property
     def incircle(self):
         """The incircle of the RegularPolygon."""
-        pass
+        raise NotImplementedError()
 
     @property
     def vertices(self):
-        pass
+        raise NotImplementedError()
 
 
 class Triangle(Polygon):

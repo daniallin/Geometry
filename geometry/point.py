@@ -34,7 +34,9 @@ class Point(GeometryEntity):
 
     def __add__(self, other):
         """Add two points' coordinates"""
-        coords = [(a + b) for a, b in zip(self, other)]
+        p1 = Point._convert(self)
+        p2 = Point._convert(other)
+        coords = [(a + b) for a, b in zip(p1, p2)]
         return Point(coords)
 
     def __sub__(self, other):
@@ -65,17 +67,19 @@ class Point(GeometryEntity):
         return hash(self.args)
 
     @classmethod
-    def _convert(cls, other):
+    def _convert(cls, p):
         """Convert other to a Point object"""
-        return cls(other) if not issubclass(type(other), cls) else other
+        return cls(p) if not issubclass(type(p), cls) else p
 
     @property
     def length(self):
         return 0.0
 
-    def distance(self, p):
+    def distance(self, p=(0, 0)):
         """reduce() is a very useful function."""
-        return math.sqrt(reduce(lambda x, y: x + y, ((a-b)**2 for a, b in zip(self, p))))
+        p1 = Point._convert(self)
+        p2 = Point._convert(p)
+        return math.sqrt(reduce(lambda x, y: x + y, ((a-b)**2 for a, b in zip(p1, p2))))
 
     def dot(self, p):
         """Return dot product of self with p"""
@@ -85,7 +89,7 @@ class Point(GeometryEntity):
         """Return whether self and p are the same point"""
         if not isinstance(p, Point) or len(self) != len(p):
             return False
-        return all(a.equals(b) for a,b in zip(self, p))
+        return all(a == b for a,b in zip(self, p))
 
     @property
     def is_zero(self):
@@ -104,7 +108,9 @@ class Point(GeometryEntity):
 
     def midpoint(self, p):
         """Return midpoint between self and p"""
-        return Point([(a + b)/2 for a, b in zip(self, p)])
+        p1 = Point._convert(self)
+        p2 = Point._convert(p)
+        return Point([(a + b)/2 for a, b in zip(p1, p2)])
 
     @property
     def orthogonal_direction(self):
@@ -118,10 +124,15 @@ class Point(GeometryEntity):
 
     def taxicab_distance(self, p):
         """Return the Taxicab Distance from self to point p."""
-        return reduce(lambda x, y: x + y, (abs(a - b) for a, b in zip(self, p)))
+        p1 = Point._convert(self)
+        p2 = Point._convert(p)
+        return reduce(lambda x, y: x + y, (abs(a - b) for a, b in zip(p1, p2)))
 
-    def project(p1, p2):
+    def project(self, p):
         """Get the mapping point of p1 on the line between p2 and origin"""
+
+        p1 = Point._convert(self)
+        p2 = Point._convert(p)
         return p2*(p1.dot(p2) / p2.dot(p2))
 
     def unit(self):
@@ -132,11 +143,12 @@ class Point(GeometryEntity):
     def are_coplanar(cls, *points):
         """Return True if there exists a plane in which all the points
         lie."""
-        pass
+        raise NotImplementedError()
 
     def is_concyclic(self, *pts):
         """Return whether `self` and the given sequence of points lie in a circle"""
-        pass
+
+        raise NotImplementedError()
 
 
 class Point2D(Point):
