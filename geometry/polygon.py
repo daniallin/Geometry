@@ -12,6 +12,28 @@ class Polygon(GeometryEntity):
     def __new__(cls, *args, **kwargs):
         vertices = [Point._convert(a) for a in args]
 
+        # remove same points
+        nsp = []
+        for p in vertices:
+            if nsp and p == nsp[-1]:
+                continue
+            nsp.append(p)
+
+        if len(nsp) > 1 and nsp[0] == nsp[-1]:
+            nsp.pop()
+
+        # remove collinear points
+        i = -3
+        while i < len(nsp) - 3 and len(nsp) > 2:
+            a, b, c = nsp[i], nsp[i + 1], nsp[i + 2]
+            if a.is_collinear(b, c):
+                nsp[i] = a
+                nsp[i + 1] = None
+                nsp.pop(i + 1)
+            i += 1
+
+        vertices = list(nsp)
+
         if len(vertices) > 3:
             return GeometryEntity.__new__(cls, *vertices, **kwargs)
         elif len(vertices) == 3:
@@ -245,4 +267,32 @@ class RegularPolygon(Polygon):
 class Triangle(Polygon):
     def __new__(cls, *args, **kwargs):
         vertices = [Point._convert(a) for a in args]
-        return GeometryEntity.__new__(cls, *vertices, **kwargs)
+
+        # remove same points
+        nsp = []
+        for p in vertices:
+            if nsp and p == nsp[-1]:
+                continue
+            nsp.append(p)
+
+        if len(nsp) > 1 and nsp[0] == nsp[-1]:
+            nsp.pop()
+
+        # remove collinear points
+        i = -3
+        while i < len(nsp) - 3 and len(nsp) > 2:
+            a, b, c = nsp[i], nsp[i + 1], nsp[i + 2]
+            if a.is_collinear(b, c):
+                nsp[i] = a
+                nsp[i + 1] = None
+                nsp.pop(i + 1)
+            i += 1
+
+        vertices = list(filter(lambda x: x is not None, nsp))
+
+        if len(vertices) == 3:
+            return GeometryEntity.__new__(cls, *vertices, **kwargs)
+        elif len(vertices) == 2:
+            return Segment(*vertices, **kwargs)
+        else:
+            return Point(*vertices, **kwargs)

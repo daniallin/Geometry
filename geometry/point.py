@@ -57,6 +57,11 @@ class Point(GeometryEntity):
             return False
         return self.args == other.args
 
+    def __neg__(self):
+        """Negate the point."""
+        ps = [-x for x in self.args]
+        return Point(ps)
+
     def __iter__(self):
         return self.args.__iter__()
 
