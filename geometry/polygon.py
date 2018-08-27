@@ -116,6 +116,7 @@ class Polygon(GeometryEntity):
         args = self.args
         # 这里不严谨，如果初始 cw_sign 就取到了多边形的 > 180° 的顶点
         # 那接下来可能会导致其他本身 < 180°的内角变为 >180°
+        # 这也是我认为 sympy 不严谨的一个函数，以后可修改
         cw_sign = self._isright(args[-1], args[0], args[1])
 
         for i in range(len(args)):

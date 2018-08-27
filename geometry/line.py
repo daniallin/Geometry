@@ -280,25 +280,32 @@ class LinearEntity(GeometryEntity):
                     return intersect_parallel_segment_and_ray(self, other)
                 if isinstance(self, Ray) and isinstance(other, Segment):
                     return intersect_parallel_rays(other, self)
+            if self.is_parallel(other):
+                return []
             else:
                 l1 = Line(self.p1, self.p2)
                 l2 = Line(other.p1, other.p2)
-                if self.is_parallel(other):
-                    return []
                 if isinstance(l1, LinearEntity2D) and isinstance(l2, LinearEntity2D):
 
                     a1, b1, c1 = l2.coefficients
                     a2, b2, c2 = l1.coefficients
+                    d = a1*b2 - a2*b1
 
                     # Here nearly_eq() function can be used to get higher precision
-                    d = a1*b2 - a2*b1
-                    if d == 0:
-                        return ("These two lines are parallel or coincident")
-                    return [Point((b1*c2 - b2*c1)/d, (a2*c1 - a1*c2)/d)]
+                    # if d == 0:
+                    #     # raise ZeroDivisionError("These two lines are parallel or coincident")
+                    #     return []
+                    p_inter = Point((b1*c2 - b2*c1)/d, (a2*c1 - a1*c2)/d)
+                    if isinstance(self, Segment2D) and isinstance(other, Segment2D):
+                        if p_inter in self and p_inter in other:
+                            return [p_inter]
+                        return []
+
+                    return [p_inter]
 
                 #三维有待补充
 
-            return []
+        return other.intersection(self)
 
 
 class Line(LinearEntity):
@@ -360,7 +367,7 @@ class Line(LinearEntity):
         return NotImplementedError
 
 
-class LinearEntity2D(Line):
+class LinearEntity2D(LinearEntity):
 
     @property
     def bounds(self):
@@ -450,25 +457,6 @@ class Line2D(LinearEntity2D, Line):
         return ("{0} + {1} + {2}".
                 format(str(a) + x, str(b) + y, str(c)))
 
-    # def intersection(self, line):
-    #     """
-    #     Get intersection point of two line
-    #     :param line:
-    #     :return: Point. intersection point
-    #     """
-    #     if not isinstance(line, LinearEntity2D):
-    #         raise ValueError("{} is not a Line object".format(line))
-    #
-    #     a1, b1, c1 = self.coefficients
-    #     a2, b2, c2 = line.coefficients
-    #
-    #     # Here nearly_eq() function can be used to get higher precision
-    #     d = a1*b2 - a2*b1
-    #     if d == 0:
-    #         return ("These two lines are parallel or coincident")
-    #     return Point((b1*c2 - b2*c1)/d, (a2*c1 - a1*c2)/d)
-
-
 class Segment(LinearEntity):
     def __new__(cls, p1, p2=None, **kwargs):
         if isinstance(p1, LinearEntity):
@@ -555,28 +543,6 @@ class Segment2D(Segment, LinearEntity2D):
             return p1
 
         return LinearEntity.__new__(cls, p1, p2, **kwargs)
-
-    # def intersection(self, other):
-    #     def intersect_parallel_segments(seg1, seg2):
-    #         if seg1.contains(seg2):
-    #             return [seg2]
-    #         if seg2.contains(seg1):
-    #             return [seg1]
-    #
-    #     if not isinstance(other, LinearEntity2D):
-    #         raise ValueError("{} isn't segment2D".format(other))
-    #
-    #     if self.p1.is_collinear(self.p2, other.p1, other.p2):
-    #         return intersect_parallel_segments(self, other)
-    #     elif self.is_parallel(other):
-    #             return []
-    #     else:
-    #         l1 = Line(self.p1, self.p2)
-    #         l2 = Line(other.p1, other.p2)
-    #         p = l1.intersection(l2)
-    #         if p in self and p in other:
-    #             return [p]
-    #         return []
 
 
 class Ray(LinearEntity):

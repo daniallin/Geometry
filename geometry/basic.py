@@ -1,5 +1,5 @@
 
-class GeometryEntity(object):
+class GeometryEntity():
 
     def __new__(cls, *args, **kwargs):
         obj = object.__new__(cls)
