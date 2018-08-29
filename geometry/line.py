@@ -291,18 +291,44 @@ class LinearEntity(GeometryEntity):
                     a2, b2, c2 = l1.coefficients
                     d = a1*b2 - a2*b1
 
-                    # Here nearly_eq() function can be used to get higher precision
-                    # if d == 0:
-                    #     # raise ZeroDivisionError("These two lines are parallel or coincident")
-                    #     return []
                     p_inter = Point((b1*c2 - b2*c1)/d, (a2*c1 - a1*c2)/d)
-                    if isinstance(self, Segment2D) and isinstance(other, Segment2D):
+
+                    if isinstance(self, Line2D) and isinstance(other, Line2D):
+                        return [p_inter]
+                    elif isinstance(self, Line2D) and isinstance(other, Ray2D):
+                        if other._span_test(p_inter) >= 0:
+                            return [p_inter]
+                        return []
+                    elif isinstance(self, Line2D) and isinstance(other, Segment2D):
+                        if p_inter in other:
+                            return [p_inter]
+                        return []
+                    elif isinstance(self, Segment2D) and isinstance(other, Segment2D):
                         if p_inter in self and p_inter in other:
                             return [p_inter]
                         return []
+                    elif isinstance(self, Segment2D) and isinstance(other, Ray2D):
+                        if p_inter in self and other._span_test(p_inter) >=0:
+                            return [p_inter]
+                        return []
+                    elif isinstance(self, Segment2D) and isinstance(other, Line2D):
+                        if p_inter in self:
+                            return [p_inter]
+                        return []
+                    elif isinstance(self, Ray2D) and isinstance(other, Segment2D):
+                        if p_inter in other and self._span_test(p_inter) >= 0:
+                            return [p_inter]
+                        return []
+                    elif isinstance(self, Ray2D) and isinstance(other, Ray2D):
+                        if other._span_test(p_inter) >= 0 and self._span_test(p_inter) >= 0:
+                            return [p_inter]
+                        return []
+                    elif isinstance(self, Ray2D) and isinstance(other, Line2D):
+                        if self._span_test(p_inter) >=0:
+                            return [p_inter]
+                        return []
 
-                    return [p_inter]
-
+                return []
                 #三维有待补充
 
         return other.intersection(self)
